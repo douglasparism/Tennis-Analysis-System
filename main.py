@@ -14,11 +14,11 @@ from copy import deepcopy
 
 
 def main():
-    # Read Video
+    # Read video from path 
     input_video_path = "input_videos/input_video.mp4"
     video_frames = read_video(input_video_path)
 
-    # Detect Players and Ball
+    # Detect Players and Ball 
     player_tracker = PlayerTracker(model_path='yolov8x')
     ball_tracker = BallTracker(model_path='models/yolo5_last.pt')
 
