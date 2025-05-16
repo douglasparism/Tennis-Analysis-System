@@ -5,7 +5,7 @@ from utils import (read_video,
     convert_pixel_distance_to_meters
 )
 import constants
-from trackers import PlayerTracker,BallTracker
+from trackers import PlayerTracker, BallTracker
 from court_line_detector import CourtLineDetector
 from mini_court import MiniCourt
 import cv2
@@ -32,7 +32,7 @@ def main():
     court_line_detector = CourtLineDetector(court_model_path)
     court_keypoints = court_line_detector.predict(video_frames[0])
 
-    # choose players
+    # choose players 
     player_detections = player_tracker.choose_and_filter_players(court_keypoints, player_detections)
 
     # MiniCourt
@@ -71,7 +71,7 @@ def main():
         # Speed of the ball shot in km/h
         speed_of_ball_shot = distance_covered_by_ball_meters/ball_shot_time_in_seconds * 3.6
 
-        # player who the ball
+        # player who shot/hit the ball
         player_positions = player_mini_court_detections[start_frame]
         player_shot_ball = min(player_positions.keys(), key=lambda player_id: measure_distance(player_positions[player_id], ball_mini_court_detections[start_frame][1]))
 
@@ -121,10 +121,11 @@ def main():
     # Draw Player Stats
     output_video_frames = draw_player_stats(output_video_frames,player_stats_data_df)
 
-    ## Draw frame number on top left corner
+    ## Draw frame number on top left corner using loop and cv2
     for i, frame in enumerate(output_video_frames):
         cv2.putText(frame, f"Frame: {i}",(10,30),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
+    # save annotated video to respective folder location
     save_video(output_video_frames, "output_videos/output_video.avi")
 
 if __name__ == "__main__":
