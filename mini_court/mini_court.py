@@ -210,17 +210,19 @@ class MiniCourt():
         output_player_boxes = []
         output_ball_boxes = []
 
+        # for each frame, find closest player to ball
         for frame_num, player_bbox in enumerate(player_boxes):
             ball_box = ball_boxes[frame_num][1]
             ball_position = get_center_of_bbox(ball_box)
             closest_player_id_to_ball = min(player_bbox.keys(), key=lambda x: measure_distance(ball_position, get_center_of_bbox(player_bbox[x])))
 
+            # for each player, find foot position and closest keypoint
             output_player_bboxes_dict = {}
             for player_id, bbox in player_bbox.items():
                 foot_position = get_foot_position(bbox)
 
                 # Get The closest keypoint in pixels
-                closest_key_point_index = get_closest_keypoint_index(foot_position,original_court_key_points, [0, 2, 12, 13])
+                closest_key_point_index = get_closest_keypoint_index(foot_position, original_court_key_points, [0, 2, 12, 13])
                 closest_key_point = (original_court_key_points[closest_key_point_index * 2], 
                 original_court_key_points[closest_key_point_index * 2 + 1])
 
@@ -256,7 +258,8 @@ class MiniCourt():
 
         return output_player_boxes , output_ball_boxes
     
-    def draw_points_on_mini_court(self, frames, positions, color=(0, 255, 0)):
+    # draw circles for given positions on minicourt for each frame
+    def draw_points_on_mini_court(self, frames, positions, color = (0, 255, 0)):
         for frame_num, frame in enumerate(frames):
             for _, position in positions[frame_num].items():
                 x,y = position

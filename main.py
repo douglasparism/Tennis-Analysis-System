@@ -59,10 +59,10 @@ def main():
         'player_2_last_player_speed':0,
     } ]
     
-    for ball_shot_ind in range(len(ball_shot_frames)-1):
+    for ball_shot_ind in range(len(ball_shot_frames) - 1):
         start_frame = ball_shot_frames[ball_shot_ind]
-        end_frame = ball_shot_frames[ball_shot_ind+1]
-        ball_shot_time_in_seconds = (end_frame-start_frame)/24 # 24fps
+        end_frame = ball_shot_frames[ball_shot_ind + 1]
+        ball_shot_time_in_seconds = (end_frame - start_frame) / 24 # 24fps
 
         # Get distance covered by the ball
         distance_covered_by_ball_pixels = measure_distance(ball_mini_court_detections[start_frame][1], ball_mini_court_detections[end_frame][1])
