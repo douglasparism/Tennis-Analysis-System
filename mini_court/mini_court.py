@@ -1,7 +1,9 @@
 # for img/video manipulation
 import cv2
+# for arr manipulation
 import numpy as np
 import sys
+# allows importing from the parent directory
 sys.path.append('../')
 # for court dimensions
 import constants
@@ -18,24 +20,27 @@ from utils import (
 )
 
 class MiniCourt():
-    def __init__(self,frame):
+    # set up minicourt size, padding, and buffer
+    def __init__(self, frame):
         self.drawing_rectangle_width = 250
         self.drawing_rectangle_height = 500
         self.buffer = 50
         self.padding_court=20
 
+        # set up the position, keypoints, and court lines
         self.set_canvas_background_box_position(frame)
         self.set_mini_court_position()
         self.set_court_drawing_key_points()
         self.set_court_lines()
 
-
+    # to convert real-world distance into mini-court pixel scale
     def convert_meters_to_pixels(self, meters):
         return convert_meters_to_pixel_distance(meters,
                                                 constants.DOUBLE_LINE_WIDTH,
                                                 self.court_drawing_width
         )
 
+    # calculate (x, y) positions of all important keypoints and store them
     def set_court_drawing_key_points(self):
         drawing_key_points = [0]*28
 
@@ -86,14 +91,14 @@ class MiniCourt():
         self.lines = [
             (0, 2),
             (4, 5),
-            (6,7),
-            (1,3),
+            (6, 7),
+            (1, 3),
             
-            (0,1),
-            (8,9),
-            (10,11),
-            (10,11),
-            (2,3)
+            (0, 1),
+            (8, 9),
+            (10, 11),
+            (10, 11),
+            (2, 3)
         ]
 
     def set_mini_court_position(self):
@@ -103,45 +108,51 @@ class MiniCourt():
         self.court_end_y = self.end_y - self.padding_court
         self.court_drawing_width = self.court_end_x - self.court_start_x
 
-    def set_canvas_background_box_position(self,frame):
+    def set_canvas_background_box_position(self, frame):
+        # make copy of frame
         frame = frame.copy()
-        
+        # to calculate position of minicourt background rectangle on copied frame
         self.end_x = frame.shape[1] - self.buffer
         self.end_y = self.buffer + self.drawing_rectangle_height
         self.start_x = self.end_x - self.drawing_rectangle_width
         self.start_y = self.end_y - self.drawing_rectangle_height
 
-    def draw_court(self,frame):
-        for i in range(0, len(self.drawing_key_points),2):
+    def draw_court(self, frame):
+        # for drawing the keypoints onto minicourt
+        for i in range(0, len(self.drawing_key_points), 2):
             x = int(self.drawing_key_points[i])
-            y = int(self.drawing_key_points[i+1])
-            cv2.circle(frame, (x,y),5, (0,0,255),-1)
+            y = int(self.drawing_key_points[i + 1])
+            cv2.circle(frame, (x, y), 5, (0, 0, 255), -1)
 
-        # draw Lines
+        # draw Lines onto minicourt
         for line in self.lines:
-            start_point = (int(self.drawing_key_points[line[0]*2]), int(self.drawing_key_points[line[0]*2+1]))
-            end_point = (int(self.drawing_key_points[line[1]*2]), int(self.drawing_key_points[line[1]*2+1]))
+            start_point = (int(self.drawing_key_points[line[0] * 2]), int(self.drawing_key_points[line[0] * 2 + 1]))
+            end_point = (int(self.drawing_key_points[line[1] * 2]), int(self.drawing_key_points[line[1] * 2 + 1]))
             cv2.line(frame, start_point, end_point, (0, 0, 0), 2)
 
-        # Draw net
-        net_start_point = (self.drawing_key_points[0], int((self.drawing_key_points[1] + self.drawing_key_points[5])/2))
-        net_end_point = (self.drawing_key_points[2], int((self.drawing_key_points[1] + self.drawing_key_points[5])/2))
+        # Draw net onto minicourt
+        net_start_point = (self.drawing_key_points[0], int((self.drawing_key_points[1] + self.drawing_key_points[5]) / 2))
+        net_end_point = (self.drawing_key_points[2], int((self.drawing_key_points[1] + self.drawing_key_points[5]) / 2))
         cv2.line(frame, net_start_point, net_end_point, (255, 0, 0), 2)
 
         return frame
 
-    def draw_background_rectangle(self,frame):
-        shapes = np.zeros_like(frame,np.uint8)
-        # Draw the rectangle
+    def draw_background_rectangle(self, frame):
+        # helps with rectangle transparency for minicourt img
+        shapes = np.zeros_like(frame, np.uint8)
+        # Draw the white rectangle
         cv2.rectangle(shapes, (self.start_x, self.start_y), (self.end_x, self.end_y), (255, 255, 255), cv2.FILLED)
+        # output frame
         out = frame.copy()
+        # 50% transparent
         alpha=0.5
         mask = shapes.astype(bool)
         out[mask] = cv2.addWeighted(frame, alpha, shapes, 1 - alpha, 0)[mask]
 
         return out
 
-    def draw_mini_court(self,frames):
+    # draw minicourt on frames, return annotated frames
+    def draw_mini_court(self, frames):
         output_frames = []
         for frame in frames:
             frame = self.draw_background_rectangle(frame)
@@ -149,6 +160,7 @@ class MiniCourt():
             output_frames.append(frame)
         return output_frames
 
+    # helper functions
     def get_start_point_of_mini_court(self):
         return (self.court_start_x,self.court_start_y)
     def get_width_of_mini_court(self):
@@ -166,7 +178,7 @@ class MiniCourt():
         
         distance_from_keypoint_x_pixels, distance_from_keypoint_y_pixels = measure_xy_distance(object_position, closest_key_point)
 
-        # Conver pixel distance to meters
+        # Convert pixel distance to meters
         distance_from_keypoint_x_meters = convert_pixel_distance_to_meters(distance_from_keypoint_x_pixels,
                                                                            player_height_in_meters,
                                                                            player_height_in_pixels
@@ -179,24 +191,24 @@ class MiniCourt():
         # Convert to mini court coordinates
         mini_court_x_distance_pixels = self.convert_meters_to_pixels(distance_from_keypoint_x_meters)
         mini_court_y_distance_pixels = self.convert_meters_to_pixels(distance_from_keypoint_y_meters)
-        closest_mini_coourt_keypoint = ( self.drawing_key_points[closest_key_point_index*2],
-                                        self.drawing_key_points[closest_key_point_index*2+1]
+        closest_mini_coourt_keypoint = ( self.drawing_key_points[closest_key_point_index * 2],
+                                        self.drawing_key_points[closest_key_point_index * 2 + 1]
         )
         
-        mini_court_player_position = (closest_mini_coourt_keypoint[0]+mini_court_x_distance_pixels,
-                                      closest_mini_coourt_keypoint[1]+mini_court_y_distance_pixels
+        mini_court_player_position = (closest_mini_coourt_keypoint[0] + mini_court_x_distance_pixels,
+                                      closest_mini_coourt_keypoint[1] + mini_court_y_distance_pixels
         )
 
         return  mini_court_player_position
 
-    def convert_bounding_boxes_to_mini_court_coordinates(self,player_boxes, ball_boxes, original_court_key_points ):
+    def convert_bounding_boxes_to_mini_court_coordinates(self, player_boxes, ball_boxes, original_court_key_points ):
         player_heights = {
             1: constants.PLAYER_1_HEIGHT_METERS,
             2: constants.PLAYER_2_HEIGHT_METERS
         }
 
-        output_player_boxes= []
-        output_ball_boxes= []
+        output_player_boxes = []
+        output_ball_boxes = []
 
         for frame_num, player_bbox in enumerate(player_boxes):
             ball_box = ball_boxes[frame_num][1]
@@ -208,13 +220,13 @@ class MiniCourt():
                 foot_position = get_foot_position(bbox)
 
                 # Get The closest keypoint in pixels
-                closest_key_point_index = get_closest_keypoint_index(foot_position,original_court_key_points, [0,2,12,13])
-                closest_key_point = (original_court_key_points[closest_key_point_index*2], 
+                closest_key_point_index = get_closest_keypoint_index(foot_position,original_court_key_points, [0, 2, 12, 13])
+                closest_key_point = (original_court_key_points[closest_key_point_index * 2], 
                 original_court_key_points[closest_key_point_index * 2 + 1])
 
                 # Get Player height in pixels
-                frame_index_min = max(0, frame_num-20)
-                frame_index_max = min(len(player_boxes), frame_num+50)
+                frame_index_min = max(0, frame_num - 20)
+                frame_index_max = min(len(player_boxes), frame_num + 50)
                 bboxes_heights_in_pixels = [get_height_of_bbox(player_boxes[i][player_id]) for i in range (frame_index_min,frame_index_max)]
                 max_player_height_in_pixels = max(bboxes_heights_in_pixels)
 
@@ -229,7 +241,7 @@ class MiniCourt():
 
                 if closest_player_id_to_ball == player_id:
                     # Get The closest keypoint in pixels
-                    closest_key_point_index = get_closest_keypoint_index(ball_position,original_court_key_points, [0,2,12,13])
+                    closest_key_point_index = get_closest_keypoint_index(ball_position,original_court_key_points, [0, 2, 12, 13])
                     closest_key_point = (original_court_key_points[closest_key_point_index * 2], 
                     original_court_key_points[closest_key_point_index * 2 + 1])
                     
@@ -244,11 +256,11 @@ class MiniCourt():
 
         return output_player_boxes , output_ball_boxes
     
-    def draw_points_on_mini_court(self,frames,postions, color=(0,255,0)):
+    def draw_points_on_mini_court(self, frames, positions, color=(0, 255, 0)):
         for frame_num, frame in enumerate(frames):
-            for _, position in postions[frame_num].items():
+            for _, position in positions[frame_num].items():
                 x,y = position
                 x= int(x)
                 y= int(y)
-                cv2.circle(frame, (x,y), 5, color, -1)
+                cv2.circle(frame, (x, y), 5, color, -1)
         return frames
