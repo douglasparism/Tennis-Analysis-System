@@ -38,7 +38,7 @@ class PlayerTracker:
 
             min_distance = float('inf')
             # iterate over court keypoints
-            for i in range(0,len(court_keypoints),2):
+            for i in range(0, len(court_keypoints), 2):
                 court_keypoint = (court_keypoints[i], court_keypoints[i+1])
                 # calculate the distance
                 distance = measure_distance(player_center, court_keypoint)
