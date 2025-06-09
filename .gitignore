@@ -1,3 +1,4 @@
 *.pt
 cv_env/
 keypoints_model.pth
+venv/
